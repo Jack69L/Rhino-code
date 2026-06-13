@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>EarnCoin</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#0a0a0f;--card:#13132a;--card2:#1a1a35;--border:rgba(255,255,255,0.07);
+  --purple:#7c3aed;--blue:#2563eb;--cyan:#22d3ee;--green:#34d399;--orange:#f97316;--yellow:#fbbf24;
+  --text:#fff;--muted:rgba(255,255,255,0.45);--radius:16px;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;overflow-x:hidden;}
+body{padding-bottom:80px;}
+
+/* ── HEADER ── */
+.header{background:linear-gradient(135deg,#1a0533 0%,#0d1a3a 100%);padding:20px 16px 24px;position:relative;overflow:hidden;}
+.header::before{content:'';position:absolute;top:-60px;right:-60px;width:220px;height:220px;background:radial-gradient(circle,rgba(138,43,226,.3) 0%,transparent 70%);}
+.header::after{content:'';position:absolute;bottom:-40px;left:-40px;width:160px;height:160px;background:radial-gradient(circle,rgba(0,150,255,.2) 0%,transparent 70%);}
+.top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;position:relative;z-index:1;}
+.user-info{display:flex;align-items:center;gap:10px;}
+.avatar{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--blue));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;flex-shrink:0;}
+.user-name{font-size:15px;font-weight:600;}
+.user-level{font-size:11px;color:#a78bfa;}
+.streak-badge{background:rgba(251,191,36,.15);border:1px solid rgba(251,191,36,.4);border-radius:20px;padding:5px 11px;font-size:12px;font-weight:600;color:var(--yellow);display:flex;align-items:center;gap:4px;white-space:nowrap;}
+.balance-block{text-align:center;position:relative;z-index:1;}
+.balance-label{font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px;}
+.balance-amount{font-size:44px;font-weight:800;background:linear-gradient(135deg,#c4b5fd,#818cf8,#38bdf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1.1;}
+.balance-sub{font-size:11px;color:var(--muted);margin-top:3px;}
+.withdraw-btn{margin:14px auto 0;display:block;background:linear-gradient(135deg,var(--purple),var(--blue));border:none;border-radius:24px;padding:11px 30px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;position:relative;z-index:1;}
+.withdraw-btn:disabled{opacity:.5;cursor:not-allowed;}
+
+/* ── SECTIONS ── */
+.section{padding:18px 14px 0;}
+.section-title{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;}
+.see-all{font-size:12px;color:#818cf8;cursor:pointer;text-transform:none;font-weight:400;}
+
+/* ── EARN CARDS ── */
+.earn-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.earn-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;cursor:pointer;transition:transform .15s,border-color .15s;position:relative;overflow:hidden;}
+.earn-card:active{transform:scale(.97);}
+.earn-card.ads{border-color:rgba(168,85,247,.3);}
+.earn-card.tasks{border-color:rgba(34,211,238,.3);}
+.earn-card.invite{border-color:rgba(52,211,153,.3);}
+.earn-card.survey{border-color:rgba(251,146,60,.3);}
+.card-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:9px;}
+.ci-purple{background:rgba(139,92,246,.2);}
+.ci-cyan{background:rgba(34,211,238,.15);}
+.ci-green{background:rgba(52,211,153,.15);}
+.ci-orange{background:rgba(251,146,60,.2);}
+.card-title{font-size:13px;font-weight:600;margin-bottom:2px;}
+.card-reward{font-size:18px;font-weight:800;background:linear-gradient(135deg,#a78bfa,#c4b5fd);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.earn-card.tasks .card-reward{background:linear-gradient(135deg,#22d3ee,#38bdf8);-webkit-background-clip:text;}
+.earn-card.invite .card-reward{background:linear-gradient(135deg,#34d399,#6ee7b7);-webkit-background-clip:text;}
+.earn-card.survey .card-reward{background:linear-gradient(135deg,var(--orange),var(--yellow));-webkit-background-clip:text;}
+.card-sub{font-size:10px;color:var(--muted);}
+.limit-bar{height:4px;background:rgba(255,255,255,.08);border-radius:4px;margin-top:8px;overflow:hidden;}
+.limit-fill{height:100%;background:linear-gradient(90deg,var(--purple),var(--cyan));border-radius:4px;transition:width .5s;}
+
+/* ── PROGRESS ── */
+.progress-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;}
+.progress-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.progress-label{font-size:13px;font-weight:600;}
+.progress-count{font-size:12px;color:#a78bfa;font-weight:600;}
+.progress-bg{background:rgba(255,255,255,.08);border-radius:8px;height:8px;overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--purple),var(--cyan));border-radius:8px;transition:width .6s;}
+.task-chips{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap;}
+.chip{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:5px 11px;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:3px;}
+.chip.done{background:rgba(52,211,153,.12);border-color:rgba(52,211,153,.3);color:var(--green);}
+
+/* ── REWARD CARDS ── */
+.rewards-row{display:flex;gap:9px;}
+.reward-card{flex:1;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:13px;text-align:center;cursor:pointer;transition:transform .15s;position:relative;}
+.reward-card:active{transform:scale(.96);}
+.reward-card.spin-c{border-color:rgba(251,146,60,.3);}
+.reward-card.scratch-c{border-color:rgba(251,191,36,.3);}
+.reward-card.bonus-c{border-color:rgba(139,92,246,.3);}
+.r-icon{font-size:28px;margin-bottom:5px;}
+.r-title{font-size:12px;font-weight:700;margin-bottom:2px;}
+.r-sub{font-size:10px;color:var(--muted);}
+.r-timer{margin-top:7px;font-size:11px;font-weight:600;color:var(--yellow);background:rgba(251,191,36,.1);border-radius:7px;padding:3px 6px;}
+.r-ready{margin-top:7px;font-size:11px;font-weight:700;color:var(--green);background:rgba(52,211,153,.15);border-radius:7px;padding:3px 6px;}
+.r-used{margin-top:7px;font-size:11px;color:var(--muted);background:rgba(255,255,255,.05);border-radius:7px;padding:3px 6px;}
+.badge-new{position:absolute;top:7px;right:7px;background:#ef4444;border-radius:5px;font-size:9px;font-weight:700;color:#fff;padding:2px 5px;}
+
+/* ── LEADERBOARD ── */
+.lb-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+.lb-row{display:flex;align-items:center;padding:10px 13px;border-bottom:1px solid rgba(255,255,255,.04);gap:9px;}
+.lb-row:last-child{border-bottom:none;}
+.lb-rank{font-size:14px;font-weight:800;width:22px;text-align:center;color:var(--muted);}
+.lb-rank.gold{color:var(--yellow);}
+.lb-rank.silver{color:#94a3b8;}
+.lb-rank.bronze{color:var(--orange);}
+.lb-av{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#4c1d95,#1e40af);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.lb-name{flex:1;font-size:13px;font-weight:500;}
+.lb-amt{font-size:13px;font-weight:700;color:#a78bfa;}
+.lb-row.me{background:rgba(124,58,237,.1);}
+
+/* ── BOTTOM NAV ── */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(10,10,15,.97);backdrop-filter:blur(12px);border-top:1px solid rgba(255,255,255,.07);display:flex;padding:8px 0 max(16px, env(safe-area-inset-bottom));z-index:50;}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;opacity:.38;transition:opacity .2s;}
+.nav-item.active{opacity:1;}
+.nav-icon{font-size:20px;}
+.nav-label{font-size:10px;font-weight:500;color:rgba(255,255,255,.65);}
+.nav-item.active .nav-label{color:#a78bfa;}
+
+/* ── PAGES ── */
+.page{display:none;}
+.page.active{display:block;}
+
+/* Tasks Page */
+.task-list{display:flex;flex-direction:column;gap:10px;}
+.task-item{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;display:flex;align-items:center;gap:12px;}
+.task-ico{font-size:24px;width:44px;height:44px;background:var(--card2);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.task-info{flex:1;}
+.task-name{font-size:13px;font-weight:600;margin-bottom:2px;}
+.task-desc{font-size:11px;color:var(--muted);}
+.task-btn{background:linear-gradient(135deg,var(--purple),var(--blue));border:none;border-radius:10px;padding:7px 14px;color:#fff;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.task-btn.done-btn{background:rgba(52,211,153,.15);color:var(--green);cursor:default;}
+
+/* Friends Page */
+.ref-box{background:var(--card);border:1px solid rgba(124,58,237,.3);border-radius:var(--radius);padding:16px;margin-bottom:14px;}
+.ref-link{font-size:12px;color:#a78bfa;word-break:break-all;margin:8px 0;}
+.ref-copy-btn{background:linear-gradient(135deg,var(--purple),var(--blue));border:none;border-radius:10px;padding:10px;color:#fff;font-size:13px;font-weight:600;cursor:pointer;width:100%;}
+.ref-stats{display:flex;gap:10px;margin-bottom:14px;}
+.ref-stat{flex:1;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:12px;text-align:center;}
+.ref-stat-val{font-size:22px;font-weight:800;color:#a78bfa;}
+.ref-stat-label{font-size:11px;color:var(--muted);margin-top:2px;}
+
+/* Withdraw page / profile */
+.profile-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px;}
+.tx-list{display:flex;flex-direction:column;gap:8px;}
+.tx-row{display:flex;align-items:center;justify-content:space-between;padding:10px 13px;background:var(--card);border-radius:12px;}
+.tx-label{font-size:13px;font-weight:500;}
+.tx-date{font-size:10px;color:var(--muted);margin-top:2px;}
+.tx-amount{font-size:14px;font-weight:700;}
+.tx-amount.positive{color:var(--green);}
+.tx-amount.negative{color:#f87171;}
+
+/* ── MODALS ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:100;align-items:flex-end;justify-content:center;}
+.overlay.open{display:flex;}
+.sheet{background:#0f0f1e;border-radius:24px 24px 0 0;padding:18px 18px 36px;width:100%;max-width:480px;animation:slideUp .3s ease;}
+@keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+.handle{width:40px;height:4px;background:rgba(255,255,255,.18);border-radius:2px;margin:0 auto 18px;}
+.modal-title{font-size:20px;font-weight:800;text-align:center;margin-bottom:4px;}
+.modal-sub{font-size:13px;color:var(--muted);text-align:center;margin-bottom:20px;}
+
+/* Spin Wheel */
+.wheel-wrap{display:flex;justify-content:center;margin-bottom:18px;position:relative;}
+.wheel-ptr{position:absolute;top:-8px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-top:22px solid var(--yellow);z-index:10;filter:drop-shadow(0 0 6px rgba(251,191,36,.8));}
+canvas{border-radius:50%;}
+.spin-btn{display:block;width:100%;background:linear-gradient(135deg,var(--orange),var(--yellow));border:none;border-radius:14px;padding:14px;color:#000;font-size:16px;font-weight:800;cursor:pointer;}
+.spin-btn:disabled{opacity:.45;cursor:not-allowed;}
+.spin-result{text-align:center;margin:10px 0;font-size:20px;font-weight:800;color:var(--yellow);min-height:28px;}
+.close-btn{display:block;width:100%;margin-top:9px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:11px;color:var(--muted);font-size:14px;cursor:pointer;}
+
+/* Scratch */
+.scratch-wrap{position:relative;width:260px;height:140px;margin:0 auto 14px;border-radius:16px;overflow:hidden;cursor:crosshair;}
+.scratch-prize{width:260px;height:140px;background:linear-gradient(135deg,var(--yellow),var(--orange));display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;}
+.scratch-amt{font-size:38px;font-weight:800;color:#1a0533;}
+.scratch-lbl{font-size:13px;font-weight:700;color:#1a0533;}
+canvas#scratchCanvas{position:absolute;top:0;left:0;}
+.scratch-hint{text-align:center;font-size:12px;color:var(--muted);margin-bottom:14px;}
+
+/* Withdrawal Requirements Modal */
+.req-list{display:flex;flex-direction:column;gap:10px;margin-bottom:18px;}
+.req-item{display:flex;align-items:center;gap:12px;background:var(--card2);border-radius:12px;padding:12px;}
+.req-check{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.req-check.done{background:rgba(52,211,153,.2);color:var(--green);}
+.req-check.todo{background:rgba(255,255,255,.06);color:var(--muted);}
+.req-text{flex:1;}
+.req-name{font-size:13px;font-weight:600;}
+.req-progress{font-size:11px;color:var(--muted);margin-top:2px;}
+
+/* Withdraw Form */
+.form-group{margin-bottom:14px;}
+.form-label{font-size:12px;color:var(--muted);margin-bottom:5px;display:block;}
+.form-select,.form-input{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:11px 13px;color:#fff;font-size:14px;outline:none;}
+.form-select:focus,.form-input:focus{border-color:rgba(124,58,237,.5);}
+.submit-btn{display:block;width:100%;background:linear-gradient(135deg,var(--purple),var(--blue));border:none;border-radius:14px;padding:14px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px;}
+.submit-btn:disabled{opacity:.4;cursor:not-allowed;}
+
+/* Toast */
+#toast{display:none;position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#1e1b4b;border:1px solid rgba(139,92,246,.4);border-radius:12px;padding:10px 20px;font-size:13px;font-weight:600;color:#c4b5fd;z-index:300;white-space:nowrap;pointer-events:none;}
+
+/* Loader */
+.loader{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;gap:14px;}
+.spinner{width:40px;height:40px;border:3px solid rgba(124,58,237,.3);border-top-color:#7c3aed;border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+
+<!-- LOADER -->
+<div id="loader" class="loader">
+  <div class="spinner"></div>
+  <div style="font-size:13px;color:var(--muted)">Loading EarnCoin...</div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none">
+
+<!-- ══ PAGE: HOME ══ -->
+<div id="page-home" class="page active">
+
+  <div class="header">
+    <div class="top-bar">
+      <div class="user-info">
+        <div class="avatar" id="hdr-avatar">?</div>
+        <div>
+          <div class="user-name" id="hdr-name">Loading...</div>
+          <div class="user-level" id="hdr-level">⭐ Level 1</div>
+        </div>
+      </div>
+      <div class="streak-badge">🔥 <span id="hdr-streak">0</span> Day Streak</div>
+    </div>
+    <div class="balance-block">
+      <div class="balance-label">Total Balance</div>
+      <div class="balance-amount" id="hdr-balance">$0.00</div>
+      <div class="balance-sub">Withdraw at $40 · PayPal or USDT</div>
+      <button class="withdraw-btn" id="main-withdraw-btn" onclick="openWithdraw()">💸 Withdraw</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Earn Money</div>
+    <div class="earn-grid">
+      <div class="earn-card ads" onclick="watchAd()">
+        <div class="card-icon ci-purple">📺</div>
+        <div class="card-title">Watch Ads</div>
+        <div class="card-reward" id="ad-reward-label">$0.25/ad</div>
+        <div class="card-sub" id="ad-count-label">Loading...</div>
+        <div class="limit-bar"><div class="limit-fill" id="ad-bar" style="width:0%"></div></div>
+      </div>
+      <div class="earn-card tasks" onclick="navTo('tasks')">
+        <div class="card-icon ci-cyan">✅</div>
+        <div class="card-title">Do Tasks</div>
+        <div class="card-reward">Up to $1</div>
+        <div class="card-sub" id="tasks-count-label">Tap to view tasks</div>
+      </div>
+      <div class="earn-card invite" onclick="navTo('friends')">
+        <div class="card-icon ci-green">👥</div>
+        <div class="card-title">Invite Friends</div>
+        <div class="card-reward">$0.75 each</div>
+        <div class="card-sub">+10% of their earnings</div>
+      </div>
+      <div class="earn-card survey" onclick="toast('Surveys coming soon!',2000)">
+        <div class="card-icon ci-orange">📋</div>
+        <div class="card-title">Surveys</div>
+        <div class="card-reward">$0.50</div>
+        <div class="card-sub">Coming soon</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Daily Goal</div>
+    <div class="progress-card">
+      <div class="progress-head">
+        <div class="progress-label">Ads Watched Today</div>
+        <div class="progress-count"><span id="prog-watched">0</span>/12</div>
+      </div>
+      <div class="progress-bg"><div class="progress-fill" id="prog-bar" style="width:0%"></div></div>
+      <div class="task-chips" id="daily-chips"></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Bonus Rewards</div>
+    <div class="rewards-row">
+      <div class="reward-card spin-c" onclick="openSpin()">
+        <div class="r-icon">🎡</div>
+        <div class="r-title">Spin Wheel</div>
+        <div class="r-sub">Win up to $2</div>
+        <div id="spin-status" class="r-ready">SPIN NOW!</div>
+      </div>
+      <div class="reward-card scratch-c" onclick="openScratch()">
+        <div class="badge-new" id="scratch-badge" style="display:none">NEW</div>
+        <div class="r-icon">🎟️</div>
+        <div class="r-title">Scratch Card</div>
+        <div class="r-sub">Win $1–$10</div>
+        <div id="scratch-status" class="r-timer">Watch 30 days</div>
+      </div>
+      <div class="reward-card bonus-c" onclick="claimDailyBonus()">
+        <div class="r-icon">🎁</div>
+        <div class="r-title">Daily Bonus</div>
+        <div class="r-sub">Streak reward</div>
+        <div id="bonus-status" class="r-ready">CLAIM!</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" style="margin-bottom:10px;">
+    <div class="section-title">
+      <span>Top Earners</span>
+    </div>
+    <div class="lb-card" id="lb-list">
+      <div class="lb-row"><div style="color:var(--muted);font-size:13px;padding:4px">Loading leaderboard...</div></div>
+    </div>
+  </div>
+
+</div><!-- /page-home -->
+
+<!-- ══ PAGE: TASKS ══ -->
+<div id="page-tasks" class="page">
+  <div class="header" style="padding:16px;padding-bottom:18px;">
+    <div style="font-size:18px;font-weight:800;position:relative;z-index:1;">✅ Tasks</div>
+    <div style="font-size:12px;color:var(--muted);position:relative;z-index:1;margin-top:3px;">Complete tasks to earn money</div>
+  </div>
+  <div class="section" style="padding-top:16px;">
+    <div class="task-list" id="task-list">
+      <div style="color:var(--muted);font-size:13px;padding:10px;">Loading tasks...</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PAGE: FRIENDS ══ -->
+<div id="page-friends" class="page">
+  <div class="header" style="padding:16px;padding-bottom:18px;">
+    <div style="font-size:18px;font-weight:800;position:relative;z-index:1;">👥 Friends</div>
+    <div style="font-size:12px;color:var(--muted);position:relative;z-index:1;margin-top:3px;">Earn $0.75 per referral + 10% of their earnings</div>
+  </div>
+  <div class="section" style="padding-top:16px;">
+    <div class="ref-stats">
+      <div class="ref-stat">
+        <div class="ref-stat-val" id="ref-count">0</div>
+        <div class="ref-stat-label">Friends Invited</div>
+      </div>
+      <div class="ref-stat">
+        <div class="ref-stat-val" id="ref-earned">$0</div>
+        <div class="ref-stat-label">Referral Earned</div>
+      </div>
+    </div>
+    <div class="ref-box">
+      <div style="font-size:12px;color:var(--muted);">Your referral link:</div>
+      <div class="ref-link" id="ref-link">Loading...</div>
+      <button class="ref-copy-btn" onclick="copyRef()">📋 Copy & Share Link</button>
+    </div>
+    <div style="font-size:13px;font-weight:700;margin-bottom:10px;">How it works</div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div style="background:var(--card);border-radius:12px;padding:12px;font-size:13px;">📤 Share your unique link with friends</div>
+      <div style="background:var(--card);border-radius:12px;padding:12px;font-size:13px;">✅ Friend opens EarnCoin and signs up</div>
+      <div style="background:var(--card);border-radius:12px;padding:12px;font-size:13px;">💰 You instantly earn <b>$0.75</b> added to your balance</div>
+      <div style="background:var(--card);border-radius:12px;padding:12px;font-size:13px;">📈 Earn <b>10%</b> of everything they earn, forever</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PAGE: PROFILE ══ -->
+<div id="page-profile" class="page">
+  <div class="header" style="padding:16px;padding-bottom:18px;">
+    <div style="font-size:18px;font-weight:800;position:relative;z-index:1;">👤 Profile</div>
+  </div>
+  <div class="section" style="padding-top:16px;">
+    <div class="profile-card">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+        <div class="avatar" style="width:52px;height:52px;font-size:20px;" id="prof-avatar">?</div>
+        <div>
+          <div style="font-size:16px;font-weight:700;" id="prof-name">Loading...</div>
+          <div style="font-size:12px;color:#a78bfa;" id="prof-level">Level 1 Earner</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+        <div style="text-align:center;background:var(--card2);border-radius:10px;padding:10px;">
+          <div style="font-size:18px;font-weight:800;color:#a78bfa;" id="prof-earned">$0</div>
+          <div style="font-size:10px;color:var(--muted);">Total Earned</div>
+        </div>
+        <div style="text-align:center;background:var(--card2);border-radius:10px;padding:10px;">
+          <div style="font-size:18px;font-weight:800;color:var(--yellow);" id="prof-streak">0</div>
+          <div style="font-size:10px;color:var(--muted);">Best Streak</div>
+        </div>
+        <div style="text-align:center;background:var(--card2);border-radius:10px;padding:10px;">
+          <div style="font-size:18px;font-weight:800;color:var(--green);" id="prof-refs">0</div>
+          <div style="font-size:10px;color:var(--muted);">Referrals</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="font-size:13px;font-weight:700;margin-bottom:10px;">Recent Transactions</div>
+    <div class="tx-list" id="tx-list">
+      <div style="color:var(--muted);font-size:13px;padding:10px;">Loading...</div>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <div class="nav-item active" onclick="navTo('home')" id="nav-home">
+    <div class="nav-icon">🏠</div><div class="nav-label">Home</div>
+  </div>
+  <div class="nav-item" onclick="navTo('tasks')" id="nav-tasks">
+    <div class="nav-icon">✅</div><div class="nav-label">Tasks</div>
+  </div>
+  <div class="nav-item" onclick="navTo('friends')" id="nav-friends">
+    <div class="nav-icon">👥</div><div class="nav-label">Friends</div>
+  </div>
+  <div class="nav-item" onclick="navTo('profile')" id="nav-profile">
+    <div class="nav-icon">👤</div><div class="nav-label">Profile</div>
+  </div>
+</div>
+
+</div><!-- /app -->
+
+<!-- ══ MODAL: SPIN WHEEL ══ -->
+<div class="overlay" id="spinModal">
+  <div class="sheet">
+    <div class="handle"></div>
+    <div class="modal-title">🎡 Weekly Spin</div>
+    <div class="modal-sub">Spin once per week · Max prize $2.00</div>
+    <div class="wheel-wrap">
+      <div class="wheel-ptr"></div>
+      <canvas id="wheelCanvas" width="240" height="240"></canvas>
+    </div>
+    <div class="spin-result" id="spinResult"></div>
+    <button class="spin-btn" id="spinBtn" onclick="doSpin()">SPIN NOW 🎡</button>
+    <button class="close-btn" onclick="closeModal('spinModal')">Close</button>
+  </div>
+</div>
+
+<!-- ══ MODAL: SCRATCH ══ -->
+<div class="overlay" id="scratchModal">
+  <div class="sheet">
+    <div class="handle"></div>
+    <div class="modal-title">🎟️ Scratch Card</div>
+    <div class="modal-sub" id="scratch-modal-sub">Monthly reward for loyal earners</div>
+    <div class="scratch-wrap" id="scratch-wrap">
+      <div class="scratch-prize">
+        <div class="scratch-amt" id="scratch-prize-amt">?</div>
+        <div class="scratch-lbl">🎉 Scratch to Reveal!</div>
+      </div>
+      <canvas id="scratchCanvas" width="260" height="140"></canvas>
+    </div>
+    <div class="scratch-hint" id="scratch-hint">Scratch anywhere with your finger to reveal</div>
+    <button class="close-btn" onclick="closeModal('scratchModal')">Close</button>
+  </div>
+</div>
+
+<!-- ══ MODAL: WITHDRAWAL ══ -->
+<div class="overlay" id="withdrawModal">
+  <div class="sheet" id="withdraw-sheet" style="max-height:90vh;overflow-y:auto;">
+    <div class="handle"></div>
+    <div id="withdraw-content"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════════
+const API = ''; // same origin
+const tg = window.Telegram?.WebApp;
+if (tg) { tg.ready(); tg.expand(); }
+
+// ══════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════
+let STATE = {
+  user: null,
+  requirements: null,
+  isWithdrawalEligible: false,
+  allRequirementsMet: false,
+  tasks: [],
+  leaderboard: [],
+  scratchRevealed: false,
+  scratchPrize: 0,
+};
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+async function init() {
+  try {
+    let tgUser = { id: 'demo_' + Math.random().toString(36).substr(2,6), first_name: 'Guest', username: 'guest' };
+    let refCode = null;
+
+    if (tg && tg.initDataUnsafe?.user) {
+      tgUser = tg.initDataUnsafe.user;
+      const startParam = tg.initDataUnsafe.start_param;
+      if (startParam) refCode = startParam;
+    } else {
+      // Browser demo mode — check URL param
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('ref')) refCode = urlParams.get('ref');
+    }
+
+    const body = {
+      telegram_id: String(tgUser.id),
+      username: tgUser.username || null,
+      first_name: tgUser.first_name || 'User',
+      last_name: tgUser.last_name || null,
+    };
+    if (refCode) body.referral_code = refCode;
+
+    const res = await fetch(`${API}/api/users/init`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'Init failed');
+
+    STATE.user = data.user;
+    STATE.requirements = data.requirements;
+    STATE.isWithdrawalEligible = data.isWithdrawalEligible;
+    STATE.allRequirementsMet = data.allRequirementsMet;
+
+    renderAll();
+    await Promise.all([loadTasks(), loadLeaderboard()]);
+
+    document.getElementById('loader').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+  } catch (err) {
+    console.error('Init failed:', err);
+    // Show demo mode
+    STATE.user = {
+      telegram_id: 'demo123', first_name: 'Jake', last_name: 'Morrison', username: 'jakemorrison',
+      balance: 24.50, total_earned: 24.50, login_streak: 12, longest_streak: 12,
+      level: 3, ads_watched_today: 7, ads_watched_total: 89, tasks_completed: 4,
+      total_referrals: 3, scratch_cards_available: 0, referral_code: 'ECDEMO1',
+      last_spin_date: null,
+    };
+    STATE.requirements = { has_invited_5: false, has_30day_streak: false, has_watched_100_ads: false, has_completed_5_tasks: false, has_verified_account: false };
+    STATE.isWithdrawalEligible = false;
+    STATE.allRequirementsMet = false;
+    renderAll();
+    loadTasksDemo();
+    loadLeaderboardDemo();
+    document.getElementById('loader').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+  }
+}
+
+// ══════════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════════
+function renderAll() {
+  const u = STATE.user;
+  if (!u) return;
+
+  const initials = ((u.first_name||'?')[0] + (u.last_name ? u.last_name[0] : '')).toUpperCase();
+  const name = [u.first_name, u.last_name].filter(Boolean).join(' ');
+  const levelNames = ['','Beginner','Rising Star','Power Earner','Elite','Legend'];
+
+  // Header
+  document.getElementById('hdr-avatar').textContent = initials;
+  document.getElementById('hdr-name').textContent = name;
+  document.getElementById('hdr-level').textContent = `⭐ Level ${u.level} · ${levelNames[u.level]||''}`;
+  document.getElementById('hdr-streak').textContent = u.login_streak || 0;
+  document.getElementById('hdr-balance').textContent = `$${parseFloat(u.balance).toFixed(2)}`;
+
+  // Withdraw button
+  const wBtn = document.getElementById('main-withdraw-btn');
+  if (u.balance >= 40) {
+    wBtn.disabled = false;
+    wBtn.textContent = '💸 Withdraw Now!';
+    wBtn.style.background = 'linear-gradient(135deg,#059669,#10b981)';
+  } else {
+    wBtn.disabled = false;
+    wBtn.textContent = `💸 Withdraw ($${(40-u.balance).toFixed(2)} left)`;
+    wBtn.style.background = 'linear-gradient(135deg,var(--purple),var(--blue))';
+  }
+
+  // Ads
+  const adsToday = u.ads_watched_today || 0;
+  document.getElementById('ad-count-label').textContent = `${adsToday}/12 today · Max $3/day`;
+  document.getElementById('ad-bar').style.width = `${Math.min((adsToday/12)*100,100)}%`;
+
+  // Daily progress
+  document.getElementById('prog-watched').textContent = adsToday;
+  document.getElementById('prog-bar').style.width = `${Math.min((adsToday/12)*100,100)}%`;
+
+  // Daily chips
+  const chips = document.getElementById('daily-chips');
+  chips.innerHTML = '';
+  const dailyGoals = [
+    { label: 'Watch 5 Ads', done: adsToday >= 5 },
+    { label: '12 Ads Done', done: adsToday >= 12 },
+    { label: '5+ Tasks', done: (u.tasks_completed||0) >= 5 },
+    { label: 'Invite Friend', done: (u.total_referrals||0) >= 1 },
+    { label: 'Spin Wheel', done: !!u.last_spin_date },
+  ];
+  dailyGoals.forEach(g => {
+    const d = document.createElement('div');
+    d.className = 'chip' + (g.done ? ' done' : '');
+    d.textContent = (g.done ? '✓ ' : '') + g.label;
+    chips.appendChild(d);
+  });
+
+  // Spin status
+  const spinEl = document.getElementById('spin-status');
+  if (u.last_spin_date) {
+    const lastSpin = new Date(u.last_spin_date);
+    const nextSpin = new Date(lastSpin.getTime() + 7*24*60*60*1000);
+    const now = new Date();
+    if (now < nextSpin) {
+      const days = Math.ceil((nextSpin - now) / (1000*60*60*24));
+      spinEl.className = 'r-timer';
+      spinEl.textContent = `In ${days} day${days>1?'s':''}`;
+    } else {
+      spinEl.className = 'r-ready'; spinEl.textContent = 'SPIN NOW!';
+    }
+  } else {
+    spinEl.className = 'r-ready'; spinEl.textContent = 'SPIN NOW!';
+  }
+
+  // Scratch status
+  const scratchEl = document.getElementById('scratch-status');
+  const scratchBadge = document.getElementById('scratch-badge');
+  if ((u.scratch_cards_available||0) > 0) {
+    scratchEl.className = 'r-ready'; scratchEl.textContent = `${u.scratch_cards_available} Available!`;
+    scratchBadge.style.display = 'block';
+  } else {
+    scratchEl.className = 'r-timer';
+    const pct = Math.min((u.ads_this_month||0), 30);
+    scratchEl.textContent = `${pct}/30 ads this month`;
+    scratchBadge.style.display = 'none';
+  }
+
+  // Profile page
+  document.getElementById('prof-avatar').textContent = initials;
+  document.getElementById('prof-name').textContent = name;
+  document.getElementById('prof-level').textContent = `Level ${u.level} · ${levelNames[u.level]||''}`;
+  document.getElementById('prof-earned').textContent = `$${parseFloat(u.total_earned).toFixed(2)}`;
+  document.getElementById('prof-streak').textContent = u.longest_streak || 0;
+  document.getElementById('prof-refs').textContent = u.total_referrals || 0;
+
+  // Friends page
+  const botUsername = 'EarnCoinBot';
+  const refLink = `https://t.me/${botUsername}?start=${u.referral_code}`;
+  document.getElementById('ref-link').textContent = refLink;
+  document.getElementById('ref-count').textContent = u.total_referrals || 0;
+}
+
+// ══════════════════════════════════════════════
+// WATCH AD
+// ══════════════════════════════════════════════
+async function watchAd() {
+  if (!STATE.user) return;
+  const u = STATE.user;
+  if ((u.ads_watched_today||0) >= 12) return toast('Daily ad limit reached! Come back tomorrow.', 2500);
+
+  // Simulate ad (replace with real Adsgram call)
+  toast('📺 Playing ad...', 1500);
+  await sleep(1600);
+
+  try {
+    const res = await fetch(`${API}/api/earnings/watch-ad`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ telegram_id: STATE.user.telegram_id })
+    });
+    const data = await res.json();
+    if (data.success) {
+      STATE.user.balance = data.balance;
+      STATE.user.ads_watched_today = data.ads_today;
+      STATE.user.ads_watched_total = (STATE.user.ads_watched_total||0) + 1;
+      STATE.user.ads_this_month = (STATE.user.ads_this_month||0) + 1;
+      if ((STATE.user.ads_this_month||0) >= 30 && (STATE.user.scratch_cards_available||0) === 0) {
+        STATE.user.scratch_cards_available = 1;
+      }
+      renderAll();
+      toast(`✅ +$0.25 earned! (${data.ads_remaining} ads left today)`, 2000);
+      if (tg) tg.HapticFeedback?.notificationOccurred('success');
+    } else {
+      toast('❌ ' + (data.error || 'Failed'), 2000);
+    }
+  } catch {
+    // Demo mode
+    STATE.user.balance += 0.25;
+    STATE.user.ads_watched_today += 1;
+    STATE.user.ads_watched_total = (STATE.user.ads_watched_total||0) + 1;
+    renderAll();
+    toast('✅ +$0.25 earned! (Demo mode)', 2000);
+  }
+}
+
+// ══════════════════════════════════════════════
+// SPIN WHEEL
+// ══════════════════════════════════════════════
+const SEGMENTS = [
+  {label:'Try Again',color:'#1e1b4b',amount:0},
+  {label:'$0.10',color:'#4c1d95',amount:.1},
+  {label:'$0.25',color:'#1e3a8a',amount:.25},
+  {label:'Try Again',color:'#1e1b4b',amount:0},
+  {label:'$0.50',color:'#14532d',amount:.5},
+  {label:'$0.10',color:'#4c1d95',amount:.1},
+  {label:'$1.00',color:'#7c2d12',amount:1},
+  {label:'$2.00',color:'#991b1b',amount:2},
+];
+let wheelAngle = 0, wheelSpinning = false;
+
+function drawWheel(angle) {
+  const canvas = document.getElementById('wheelCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const n = SEGMENTS.length, seg = (Math.PI*2)/n;
+  const cx=120,cy=120,r=110;
+  ctx.clearRect(0,0,240,240);
+  SEGMENTS.forEach((s,i) => {
+    const start = angle + i*seg - Math.PI/2, end = start+seg;
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,r,start,end); ctx.closePath();
+    ctx.fillStyle = s.color; ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,.07)'; ctx.lineWidth=1; ctx.stroke();
+    ctx.save(); ctx.translate(cx,cy); ctx.rotate(start+seg/2);
+    ctx.textAlign='right';
+    ctx.fillStyle = s.amount===2?'#fbbf24':'#fff';
+    ctx.font = s.amount===2 ? 'bold 13px system-ui' : '11px system-ui';
+    ctx.fillText(s.label, r-8, 4);
+    ctx.restore();
+  });
+  ctx.beginPath(); ctx.arc(cx,cy,18,0,Math.PI*2);
+  ctx.fillStyle='#fbbf24'; ctx.fill();
+  ctx.fillStyle='#000'; ctx.font='bold 8px system-ui'; ctx.textAlign='center';
+  ctx.fillText('SPIN',cx,cy+3);
+}
+
+function openSpin() {
+  document.getElementById('spinModal').classList.add('open');
+  document.getElementById('spinResult').textContent = '';
+  document.getElementById('spinBtn').disabled = false;
+  drawWheel(wheelAngle);
+}
+
+async function doSpin() {
+  if (wheelSpinning) return;
+
+  // Check spin availability
+  if (STATE.user?.last_spin_date) {
+    const lastSpin = new Date(STATE.user.last_spin_date);
+    const daysSince = (Date.now() - lastSpin) / (1000*60*60*24);
+    if (daysSince < 7) {
+      const daysLeft = Math.ceil(7 - daysSince);
+      toast(`⏳ Spin resets in ${daysLeft} day${daysLeft>1?'s':''}`, 2000);
+      return;
+    }
+  }
+
+  wheelSpinning = true;
+  document.getElementById('spinBtn').disabled = true;
+  document.getElementById('spinResult').textContent = '';
+
+  let apiPrize = null;
+  try {
+    const res = await fetch(`${API}/api/earnings/spin`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ telegram_id: STATE.user.telegram_id })
+    });
+    const data = await res.json();
+    if (data.success) { apiPrize = data; STATE.user.balance = data.balance; STATE.user.last_spin_date = new Date().toISOString(); }
+  } catch { /* demo */ }
+
+  // Animate wheel
+  const totalSpin = Math.PI*2*(5+Math.random()*5) + Math.random()*Math.PI*2;
+  const duration = 3800, start = performance.now(), startAngle = wheelAngle;
+  function frame(now) {
+    const elapsed = now - start, t = Math.min(elapsed/duration,1);
+    const ease = 1 - Math.pow(1-t,4);
+    wheelAngle = startAngle + totalSpin*ease;
+    drawWheel(wheelAngle);
+    if (t < 1) { requestAnimationFrame(frame); return; }
+
+    wheelSpinning = false;
+    const norm = ((wheelAngle % (Math.PI*2)) + Math.PI*2) % (Math.PI*2);
+    const idx = Math.floor(((Math.PI*2) - norm) / ((Math.PI*2)/SEGMENTS.length)) % SEGMENTS.length;
+    const prize = SEGMENTS[idx];
+
+    if (apiPrize) {
+      document.getElementById('spinResult').textContent = apiPrize.prize === 'Try Again' ? '😔 Better luck next time!' : `🎉 You won ${apiPrize.prize}!`;
+      if (apiPrize.amount > 0 && tg) tg.HapticFeedback?.notificationOccurred('success');
+    } else {
+      document.getElementById('spinResult').textContent = prize.amount===0 ? '😔 Better luck next time!' : `🎉 You won ${prize.label}! (Demo)`;
+      if (prize.amount > 0) STATE.user.balance += prize.amount;
+    }
+    renderAll();
+  }
+  requestAnimationFrame(frame);
+}
+
+// ══════════════════════════════════════════════
+// SCRATCH CARD
+// ══════════════════════════════════════════════
+let scratchInit = false;
+
+async function openScratch() {
+  const u = STATE.user;
+  if (!u) return;
+  if ((u.scratch_cards_available||0) < 1) {
+    const pct = Math.min(u.ads_this_month||0, 30);
+    toast(`🎟️ Watch ${30-pct} more days of ads to unlock!`, 2500);
+    return;
+  }
+
+  // Get prize from server first
+  try {
+    const res = await fetch(`${API}/api/earnings/scratch`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ telegram_id: u.telegram_id })
+    });
+    const data = await res.json();
+    if (data.success) {
+      STATE.scratchPrize = data.amount;
+      STATE.user.balance = data.balance;
+      STATE.user.scratch_cards_available = data.scratch_cards_remaining;
+    }
+  } catch {
+    STATE.scratchPrize = [1,2,3,5][Math.floor(Math.random()*4)];
+  }
+
+  document.getElementById('scratch-prize-amt').textContent = `$${parseFloat(STATE.scratchPrize).toFixed(2)}`;
+  document.getElementById('scratchModal').classList.add('open');
+  scratchInit = false;
+  STATE.scratchRevealed = false;
+  setTimeout(initScratch, 100);
+}
+
+function initScratch() {
+  if (scratchInit) return;
+  scratchInit = true;
+  const canvas = document.getElementById('scratchCanvas');
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#374151';
+  ctx.fillRect(0,0,260,140);
+  for(let i=0;i<18;i++){
+    ctx.beginPath(); ctx.arc(Math.random()*260,Math.random()*140,18+Math.random()*28,0,Math.PI*2);
+    ctx.fillStyle='rgba(255,255,255,.04)'; ctx.fill();
+  }
+  ctx.fillStyle='#fff'; ctx.font='bold 17px system-ui'; ctx.textAlign='center';
+  ctx.fillText('🎟️ Scratch to Reveal!',130,62);
+  ctx.font='12px system-ui'; ctx.fillStyle='rgba(255,255,255,.5)';
+  ctx.fillText('Monthly Loyalty Reward',130,85);
+
+  let isDrawing = false;
+  let totalScratched = 0;
+  function getScratchedPct() { const d=ctx.getImageData(0,0,260,140).data; let n=0; for(let i=3;i<d.length;i+=4) if(d[i]===0)n++; return n/(260*140)*100; }
+
+  canvas.onmousedown = () => isDrawing = true;
+  canvas.onmouseup = () => { isDrawing = false; checkReveal(); };
+  canvas.onmouseleave = () => isDrawing = false;
+  canvas.onmousemove = e => { if(!isDrawing) return; doScratch(e); };
+  canvas.ontouchstart = e => { isDrawing=true; e.preventDefault(); };
+  canvas.ontouchend = () => { isDrawing=false; checkReveal(); };
+  canvas.ontouchmove = e => { e.preventDefault(); doScratch(e.touches[0]); };
+
+  function doScratch(e) {
+    const rect=canvas.getBoundingClientRect();
+    const x=(e.clientX-rect.left)*(260/rect.width), y=(e.clientY-rect.top)*(140/rect.height);
+    ctx.globalCompositeOperation='destination-out';
+    ctx.beginPath(); ctx.arc(x,y,24,0,Math.PI*2); ctx.fill();
+    totalScratched++;
+    if(totalScratched%30===0) checkReveal();
+  }
+
+  function checkReveal() {
+    if(STATE.scratchRevealed) return;
+    const pct = getScratchedPct();
+    if(pct > 50) {
+      STATE.scratchRevealed = true;
+      ctx.clearRect(0,0,260,140);
+      renderAll();
+      if(tg) tg.HapticFeedback?.notificationOccurred('success');
+      document.getElementById('scratch-hint').textContent = `🎉 You won $${parseFloat(STATE.scratchPrize).toFixed(2)}! Added to your balance.`;
+    }
+  }
+}
+
+// ══════════════════════════════════════════════
+// WITHDRAW
+// ══════════════════════════════════════════════
+function openWithdraw() {
+  const u = STATE.user;
+  const req = STATE.requirements || {};
+  const content = document.getElementById('withdraw-content');
+
+  if (u.balance < 40) {
+    content.innerHTML = `
+      <div class="modal-title">💸 Withdraw</div>
+      <div class="modal-sub">Minimum withdrawal is $40.00</div>
+      <div style="background:var(--card2);border-radius:14px;padding:16px;margin-bottom:14px;">
+        <div style="font-size:13px;color:var(--muted);margin-bottom:4px;">Current Balance</div>
+        <div style="font-size:32px;font-weight:800;color:#a78bfa;">$${parseFloat(u.balance).toFixed(2)}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:6px;">Need <b style="color:#f87171;">$${(40-u.balance).toFixed(2)}</b> more to unlock withdrawal</div>
+      </div>
+      <div style="background:linear-gradient(135deg,rgba(124,58,237,.15),rgba(37,99,235,.15));border:1px solid rgba(124,58,237,.3);border-radius:14px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:13px;font-weight:700;margin-bottom:8px;">Ways to earn faster:</div>
+        <div style="font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:6px;">
+          <div>📺 Watch 12 ads/day → <b style="color:#a78bfa;">$3.00/day</b></div>
+          <div>👥 Invite 5 friends → <b style="color:#a78bfa;">$3.75</b></div>
+          <div>✅ Complete all tasks → <b style="color:#a78bfa;">up to $5.00</b></div>
+          <div>🎡 Weekly spin bonus → <b style="color:#a78bfa;">up to $2.00</b></div>
+        </div>
+      </div>
+      <button class="close-btn" onclick="closeModal('withdrawModal')">Close</button>
+    `;
+    document.getElementById('withdrawModal').classList.add('open');
+    return;
+  }
+
+  // $40+ reached — show requirements gate
+  const reqDefs = [
+    { key:'has_invited_5', icon:'👥', label:'Invite 5 Friends', detail: `${u.total_referrals||0}/5 invited` },
+    { key:'has_30day_streak', icon:'🔥', label:'30-Day Login Streak', detail: `${u.longest_streak||0}/30 days best streak` },
+    { key:'has_watched_100_ads', icon:'📺', label:'Watch 100 Ads Total', detail: `${u.ads_watched_total||0}/100 ads watched` },
+    { key:'has_completed_5_tasks', icon:'✅', label:'Complete 5 Tasks', detail: `${u.tasks_completed||0}/5 tasks done` },
+    { key:'has_verified_account', icon:'🔐', label:'Verify Account', detail: 'Submit your info for review' },
+  ];
+
+  const allMet = reqDefs.every(r => req[r.key]);
+
+  if (!allMet) {
+    const reqHTML = reqDefs.map(r => `
+      <div class="req-item">
+        <div class="req-check ${req[r.key]?'done':'todo'}">${req[r.key]?'✓':'○'}</div>
+        <div class="req-text">
+          <div class="req-name">${r.icon} ${r.label}</div>
+          <div class="req-progress">${req[r.key]?'✅ Completed':r.detail}</div>
+        </div>
+      </div>
+    `).join('');
+
+    const metCount = reqDefs.filter(r=>req[r.key]).length;
+    content.innerHTML = `
+      <div class="modal-title">🎉 You reached $40!</div>
+      <div class="modal-sub">Complete these requirements to unlock your withdrawal</div>
+      <div style="background:linear-gradient(135deg,rgba(52,211,153,.12),rgba(16,185,129,.08));border:1px solid rgba(52,211,153,.25);border-radius:14px;padding:12px;text-align:center;margin-bottom:16px;">
+        <div style="font-size:24px;font-weight:800;color:#34d399;">$${parseFloat(u.balance).toFixed(2)}</div>
+        <div style="font-size:12px;color:var(--muted);">Ready to withdraw · ${metCount}/${reqDefs.length} requirements met</div>
+        <div style="height:6px;background:rgba(255,255,255,.08);border-radius:6px;margin-top:10px;overflow:hidden;">
+          <div style="height:100%;width:${(metCount/reqDefs.length*100).toFixed(0)}%;background:linear-gradient(90deg,#34d399,#10b981);border-radius:6px;transition:width .6s;"></div>
+        </div>
+      </div>
+      <div style="font-size:13px;font-weight:700;margin-bottom:10px;color:rgba(255,255,255,.7);">UNLOCK REQUIREMENTS</div>
+      <div class="req-list">${reqHTML}</div>
+      <div style="background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);border-radius:12px;padding:12px;margin-bottom:14px;font-size:12px;color:rgba(255,255,255,.6);">
+        ⚠️ These requirements protect against fraud and ensure fair payouts for all users. Once met, withdrawals process within 3–5 business days.
+      </div>
+      <button class="close-btn" onclick="closeModal('withdrawModal')">Close</button>
+    `;
+  } else {
+    // All requirements met — show withdrawal form
+    content.innerHTML = `
+      <div class="modal-title">💸 Request Withdrawal</div>
+      <div class="modal-sub">All requirements met! Choose your payout method.</div>
+      <div style="background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.3);border-radius:14px;padding:12px;text-align:center;margin-bottom:16px;">
+        <div style="font-size:28px;font-weight:800;color:#34d399;">$${parseFloat(u.balance).toFixed(2)}</div>
+        <div style="font-size:12px;color:var(--muted);">Amount to withdraw</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Payment Method</label>
+        <select class="form-select" id="wd-method">
+          <option value="paypal">💳 PayPal</option>
+          <option value="usdt_trc20">₮ USDT (TRC20)</option>
+          <option value="usdt_erc20">₮ USDT (ERC20)</option>
+          <option value="binance_pay">🟡 Binance Pay</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" id="addr-label">PayPal Email Address</label>
+        <input class="form-input" id="wd-address" type="text" placeholder="your@email.com"/>
+      </div>
+      <button class="submit-btn" onclick="submitWithdrawal()">Submit Withdrawal Request</button>
+      <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:10px;">Processing time: 3–5 business days</div>
+      <button class="close-btn" style="margin-top:8px;" onclick="closeModal('withdrawModal')">Cancel</button>
+    `;
+    document.getElementById('wd-method').addEventListener('change', function() {
+      const labels = {paypal:'PayPal Email Address', usdt_trc20:'USDT Wallet (TRC20)', usdt_erc20:'USDT Wallet (ERC20)', binance_pay:'Binance Pay ID or Email'};
+      const placeholders = {paypal:'your@email.com', usdt_trc20:'TRC20 wallet address', usdt_erc20:'ERC20 wallet address', binance_pay:'Binance Pay ID'};
+      document.getElementById('addr-label').textContent = labels[this.value];
+      document.getElementById('wd-address').placeholder = placeholders[this.value];
+    });
+  }
+
+  document.getElementById('withdrawModal').classList.add('open');
+}
+
+async function submitWithdrawal() {
+  const method = document.getElementById('wd-method').value;
+  const address = document.getElementById('wd-address').value.trim();
+  if (!address) return toast('Please enter your payment address', 2000);
+
+  const btn = document.querySelector('#withdraw-content .submit-btn');
+  btn.disabled = true; btn.textContent = 'Submitting...';
+
+  try {
+    const res = await fetch(`${API}/api/withdrawals/request`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ telegram_id: STATE.user.telegram_id, method, address })
+    });
+    const data = await res.json();
+    if (data.success) {
+      STATE.user.balance = 0;
+      renderAll();
+      closeModal('withdrawModal');
+      toast('🎉 Withdrawal submitted! Processing in 3–5 business days.', 3000);
+    } else {
+      toast('❌ ' + (data.error||'Failed'), 2500);
+      btn.disabled=false; btn.textContent='Submit Withdrawal Request';
+    }
+  } catch {
+    toast('❌ Network error. Try again.', 2000);
+    btn.disabled=false; btn.textContent='Submit Withdrawal Request';
+  }
+}
+
+// ══════════════════════════════════════════════
+// DAILY BONUS
+// ══════════════════════════════════════════════
+function claimDailyBonus() {
+  toast('🎁 Daily bonus already included in your login streak! Keep your streak going 🔥', 3000);
+}
+
+// ══════════════════════════════════════════════
+// TASKS
+// ══════════════════════════════════════════════
+async function loadTasks() {
+  try {
+    const res = await fetch(`${API}/api/tasks?telegram_id=${STATE.user.telegram_id}`);
+    const data = await res.json();
+    STATE.tasks = data.tasks || [];
+    renderTasks();
+  } catch { loadTasksDemo(); }
+}
+
+function loadTasksDemo() {
+  STATE.tasks = [
+    {id:1,title:'Join Telegram Channel',description:'Join @EarnCoinNews for updates',reward:0.50,type:'telegram',link:'https://t.me',completed:true},
+    {id:2,title:'Follow on Twitter/X',description:'Follow @EarnCoinApp on X',reward:0.50,type:'social',link:'https://twitter.com',completed:false},
+    {id:3,title:'Rate the bot ⭐⭐⭐⭐⭐',description:'Leave a 5-star review',reward:0.25,type:'review',link:null,completed:false},
+    {id:4,title:'Complete your profile',description:'Add your payment method',reward:0.75,type:'profile',link:null,completed:false},
+    {id:5,title:'Watch 5 ads in a row',description:'Watch 5 consecutive ads',reward:1.00,type:'ads',link:null,completed:false},
+    {id:6,title:'Refer your first friend',description:'Invite one friend who joins',reward:1.00,type:'referral',link:null,completed:false},
+  ];
+  renderTasks();
+}
+
+function renderTasks() {
+  const list = document.getElementById('task-list');
+  if (!STATE.tasks.length) { list.innerHTML='<div style="color:var(--muted);font-size:13px;">No tasks available</div>'; return; }
+  const typeIcons = {telegram:'📢',social:'🐦',review:'⭐',profile:'👤',ads:'📺',referral:'👥'};
+  list.innerHTML = STATE.tasks.map(t => `
+    <div class="task-item">
+      <div class="task-ico">${typeIcons[t.type]||'✅'}</div>
+      <div class="task-info">
+        <div class="task-name">${t.title}</div>
+        <div class="task-desc">${t.description} · <b style="color:#a78bfa;">+$${parseFloat(t.reward).toFixed(2)}</b></div>
+      </div>
+      ${t.completed
+        ? `<button class="task-btn done-btn">✓ Done</button>`
+        : `<button class="task-btn" onclick="completeTask(${t.id}, this)">${t.link?'Go →':'Claim'}</button>`
+      }
+    </div>
+  `).join('');
+  const remaining = STATE.tasks.filter(t=>!t.completed).length;
+  document.getElementById('tasks-count-label').textContent = `${remaining} tasks available`;
+}
+
+async function completeTask(taskId, btn) {
+  const task = STATE.tasks.find(t=>t.id===taskId);
+  if (!task) return;
+  if (task.link) { window.open(task.link, '_blank'); await sleep(1500); }
+  btn.disabled = true; btn.textContent = '⏳';
+
+  try {
+    const res = await fetch(`${API}/api/tasks/complete`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ telegram_id: STATE.user.telegram_id, task_id: taskId })
+    });
+    const data = await res.json();
+    if (data.success) {
+      STATE.user.balance = data.balance;
+      STATE.user.tasks_completed = data.tasks_completed;
+      task.completed = true;
+      renderTasks(); renderAll();
+      toast(`✅ Task completed! +$${parseFloat(task.reward).toFixed(2)} earned!`, 2000);
+    } else {
+      toast('❌ ' + (data.error||'Failed'), 2000);
+      btn.disabled=false; btn.textContent = task.link ? 'Go →' : 'Claim';
+    }
+  } catch {
+    STATE.user.balance += task.reward;
+    STATE.user.tasks_completed = (STATE.user.tasks_completed||0)+1;
+    task.completed = true;
+    renderTasks(); renderAll();
+    toast(`✅ +$${parseFloat(task.reward).toFixed(2)} (Demo)`, 2000);
+  }
+}
+
+// ══════════════════════════════════════════════
+// LEADERBOARD
+// ══════════════════════════════════════════════
+async function loadLeaderboard() {
+  try {
+    const res = await fetch(`${API}/api/users/leaderboard/top`);
+    const data = await res.json();
+    STATE.leaderboard = data.leaderboard || [];
+    renderLeaderboard();
+  } catch { loadLeaderboardDemo(); }
+}
+
+function loadLeaderboardDemo() {
+  STATE.leaderboard = [
+    {first_name:'Marcus',last_name:'T',total_earned:142.80,level:5},
+    {first_name:'Sarah',last_name:'W',total_earned:98.50,level:4},
+    {first_name:'Jake',last_name:'Morrison',total_earned:24.50,level:3},
+    {first_name:'Emma',last_name:'R',total_earned:19.20,level:2},
+    {first_name:'Tyler',last_name:'B',total_earned:12.75,level:2},
+  ];
+  renderLeaderboard();
+}
+
+function renderLeaderboard() {
+  const el = document.getElementById('lb-list');
+  const medals = ['🥇','🥈','🥉'];
+  const rankClass = ['gold','silver','bronze'];
+  const bgColors = ['linear-gradient(135deg,#7c3aed,#4338ca)','linear-gradient(135deg,#0f766e,#1e40af)','linear-gradient(135deg,#9a3412,#7c2d12)','linear-gradient(135deg,#1e3a5f,#1e1b4b)','linear-gradient(135deg,#14532d,#1e3a8a)'];
+
+  el.innerHTML = STATE.leaderboard.map((u, i) => {
+    const initials = (u.first_name||'?')[0] + (u.last_name ? u.last_name[0] : '');
+    const isMe = STATE.user && u.first_name === STATE.user.first_name;
+    return `
+      <div class="lb-row${isMe?' me':''}">
+        <div class="lb-rank ${rankClass[i]||''}">${medals[i]||i+1}</div>
+        <div class="lb-av" style="background:${bgColors[i%5]}">${initials.toUpperCase()}</div>
+        <div class="lb-name">${u.first_name}${isMe?' (You)':''}</div>
+        <div class="lb-amt">$${parseFloat(u.total_earned).toFixed(2)}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════
+// FRIENDS / REFERRAL
+// ══════════════════════════════════════════════
+async function copyRef() {
+  const u = STATE.user;
+  if (!u) return;
+  const link = `https://t.me/EarnCoinBot?start=${u.referral_code}`;
+  const text = `💰 Earn real money watching ads on EarnCoin!\n\n📺 Watch Ads → $0.25 each\n✅ Do Tasks → Up to $1.00\n🎡 Weekly Spin → Up to $2.00\n🎟️ Monthly Scratch → $1–$10\n💸 Withdraw at $40 via PayPal or USDT\n\nJoin with my link:\n${link}`;
+
+  if (tg) {
+    tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`);
+  } else {
+    try { await navigator.clipboard.writeText(link); toast('📋 Referral link copied!', 2000); }
+    catch { toast('📋 Copy: ' + link, 2000); }
+  }
+}
+
+// ══════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════
+const PAGES = ['home','tasks','friends','profile'];
+
+function navTo(page) {
+  PAGES.forEach(p => {
+    document.getElementById(`page-${p}`)?.classList.toggle('active', p===page);
+    document.getElementById(`nav-${p}`)?.classList.toggle('active', p===page);
+  });
+  if (page==='profile') loadProfile();
+}
+
+async function loadProfile() {
+  try {
+    const res = await fetch(`${API}/api/users/${STATE.user.telegram_id}`);
+    const data = await res.json();
+    if (data.user) STATE.user = {...STATE.user, ...data.user};
+    renderAll();
+    const txEl = document.getElementById('tx-list');
+    if (data.transactions?.length) {
+      const typeIcons = {ad:'📺',task:'✅',referral:'👥',spin:'🎡',scratch:'🎟️',bonus:'🎁',streak:'🔥',withdrawal:'💸'};
+      txEl.innerHTML = data.transactions.map(tx => `
+        <div class="tx-row">
+          <div>
+            <div class="tx-label">${typeIcons[tx.type]||'💰'} ${tx.description}</div>
+            <div class="tx-date">${new Date(tx.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
+          </div>
+          <div class="tx-amount ${tx.amount>0?'positive':'negative'}">${tx.amount>0?'+':''} $${Math.abs(tx.amount).toFixed(2)}</div>
+        </div>
+      `).join('');
+    } else {
+      txEl.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:10px;">No transactions yet. Start earning!</div>';
+    }
+  } catch {
+    document.getElementById('tx-list').innerHTML = '<div style="color:var(--muted);font-size:13px;padding:10px;">No transactions yet.</div>';
+  }
+}
+
+// ══════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function sleep(ms) { return new Promise(r=>setTimeout(r,ms)); }
+let toastTimer;
+function toast(msg, dur=2000) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.style.display='block';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>el.style.display='none', dur);
+}
+
+// Close modals on backdrop click
+document.querySelectorAll('.overlay').forEach(ov => {
+  ov.addEventListener('click', e => { if(e.target===ov) closeModal(ov.id); });
+});
+
+// Start
+init();
+</script>
+</body>
+</html>
